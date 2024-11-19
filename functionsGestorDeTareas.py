@@ -41,20 +41,26 @@ def agregarTarea():
     combobox.pack(pady=5)
 
     botonAgregar = ctk.CTkButton(secundaria, text="Agregar",
-                                 command=lambda: combobox_callback(entryTitulo.get(), combobox.get()))
-    botonAgregar.pack(pady=100)
+                                 command=lambda: guardarTarea(entryTitulo, combobox.get()))
+    botonAgregar.pack(pady=10)
+
+    botonCerrar = ctk.CTkButton(secundaria, text="Cerrar", fg_color="red", command=secundaria.destroy)
+    botonCerrar.pack(pady=15)
+
     secundaria.mainloop()
 
 
 tareas = {}
 
 
-def combobox_callback(titulo, prioridad):
+def guardarTarea(titulo, prioridad):
+    tituloTarea = titulo.get()
+    titulo.delete(0, 'end')
     now = datetime.now()
     dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
-    print(f"El titulo de la tarea es {titulo}, su prioridad es {prioridad} y su fecha de creación es {dt_string}")
+    print(f"El titulo de la tarea es {tituloTarea}, su prioridad es {prioridad} y su fecha de creación es {dt_string}")
 
-    tareas[titulo] = {
+    tareas[tituloTarea] = {
         "Prioridad": prioridad,
         "Fecha": now
     }

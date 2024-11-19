@@ -7,7 +7,7 @@ funcs.centrarPantalla(root)
 botonAdd = ctk.CTkButton(root, text="Agregar tarea", command=funcs.agregarTarea)
 botonAdd.pack(padx=20, pady=20)
 
-botonGestionar = ctk.CTkButton(root, text="Agregar tarea", command=funcs.gestionarTarea)
+botonGestionar = ctk.CTkButton(root, text="Gestionar tarea", command=funcs.gestionarTarea)
 botonGestionar.pack(padx=20, pady=20)
 
 root.mainloop()
