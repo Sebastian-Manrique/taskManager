@@ -3,14 +3,71 @@ import tkinter as tk
 from tkinter import ttk, Toplevel
 
 import customtkinter as ctk  # <- import the CustomTkinter module
+from customtkinter import CTkFrame
+
+
+class classRoot:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Gestor de tareas")
+        centrarPantalla(self.root)
+
+        self.root.grid_rowconfigure([0, 1, 2], weight=1)
+        self.root.grid_columnconfigure([0, 1, 2], weight=1)
+
+        self.instanceBottom = frameBottom(self.root)
+        self.instanceBottom.grid(row=2, column=0, columnspan=3, sticky="nsew")
+
+        self.instanceMiddle = frameMiddle(self.root)
+        self.instanceMiddle.grid(row=1, column=0, columnspan=3, sticky="nsew")
+
+        self.instanceTop = frameTop(self.root)
+        self.instanceTop.grid(row=0, column=0, columnspan=3, sticky="nsew")
+
+
+class frameTop(ctk.CTkFrame):  # Usar PEP8 para nombres de clases
+    def __init__(self, root):
+        super().__init__(root)
+        self.configure(fg_color="grey")
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
+        # Etiqueta del frame del medio
+        etiqueta = ctk.CTkLabel(self, text="ETIQUETA ARRIBA")
+        etiqueta.pack()
+
+
+class frameMiddle(ctk.CTkFrame):
+    def __init__(self, root):
+        super().__init__(root)
+        self.configure(fg_color="darkgreen")
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
+        # Etiqueta del frame del medio
+        etiqueta = ctk.CTkLabel(self, text="ETIQUETA MEDIO")
+        etiqueta.pack()
+
+
+class frameBottom(ctk.CTkFrame):
+    def __init__(self, root):
+        super().__init__(root)
+        self.configure(fg_color="darkblue")
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure([0, 1, 2], weight=1)
+
+        botonAdd = ctk.CTkButton(self, text="Agregar tarea", command= lambda : agregarTarea(frameBottom))
+        botonAdd.grid(row=0, column=0)
+
+        botonGestionar = ctk.CTkButton(self, text="Gestionar tarea", command=gestionarTarea)
+        botonGestionar.grid(row=0, column=1)
+
+        botonAspecto = ctk.CTkButton(self, text="Aspecto 🌙", command=gestionarTarea)
+        botonAspecto.grid(row=0, column=2)
 
 
 def centrarPantalla(root):
-    root.rowconfigure([0, 1, 2, 3], weight=1)
-    root.columnconfigure([0, 1, 2, 3], weight=1)
-    # root.grid(row=4, colum=4)
-
-    ancho_ventana = 700
+    ancho_ventana = 800
     # Colocarla centrada
     # 1. Conocer nuestra pantalla
 
@@ -23,7 +80,7 @@ def centrarPantalla(root):
     root.geometry(f"{ancho_ventana}x{alto_ventana}+{pos_x}+{pos_y}")
 
 
-def agregarTarea():
+def agregarTarea(frameBottom):
     secundaria = ctk.CTk()
     centrarPantalla(secundaria)
     secundaria.title("Agregar tarea")
