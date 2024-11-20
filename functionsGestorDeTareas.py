@@ -16,7 +16,7 @@ class classRoot:
 
         self.middleInstance.pack(expand=True, fill="both")
 
-        self.bottomInstance = frameBottom(self.root)
+        self.bottomInstance = frameBottom(self.root, self.middleInstance)
         self.bottomInstance.pack(side="bottom", fill="x")
 
 
@@ -45,7 +45,7 @@ class frameMiddle(ctk.CTkFrame):
         etiqueta = ctk.CTkLabel(self, text="Tareas")
         etiqueta.pack()
 
-        self.tabla = ttk.Treeview(self, columns=("Coll", "Col2", "Col3", "Col4"), show="headings")
+        self.tabla = ttk.Treeview(self, columns=("Coll", "Col2", "Col3", "Col4", "Col5"), show="headings")
 
         self.tabla.heading("Coll", text="Titulo")
         self.tabla.heading("Col2", text="Prioridad")
@@ -55,17 +55,30 @@ class frameMiddle(ctk.CTkFrame):
         self.tabla.pack()
 
     def build_tree(self, tituloTarea, prioridad, dt_string):
-        self.tabla.insert("", "end", values=(tituloTarea, prioridad, dt_string, "en proceso"))
+        self.tabla.insert("", "end", values=(tituloTarea, prioridad, dt_string, "No seleccionado"))
         print(f"MIDDLE FRAME: {tituloTarea} {prioridad} {dt_string}")
+
+    def toggle_selection(self):
+        # Alternar selección en la fila seleccionada
+        selected_item = self.tabla.selection()
+        if not selected_item:
+            tk.messagebox.showerror(title="Error", message="Seleccione una tarea para alternar el estado.")
+            return
+
+        for item in selected_item:
+            current_values = self.tabla.item(item, "values")
+            new_state = "En proceso" if current_values[3] == "Terminado" else "En proceso"
+            new_values = (*current_values[:3], new_state)
+            self.tabla.item(item, values=new_values)
 
 
 class frameBottom(ctk.CTkFrame):
-    def __init__(self, root):
+    def __init__(self, root, middleInstance):
         super().__init__(root)
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure([0, 1], weight=1)
 
-        botonGestionar = ctk.CTkButton(self, text="Gestionar tarea", command=gestionarTarea)
+        botonGestionar = ctk.CTkButton(self, text="Alternar Selección", command=middleInstance.toggle_selection)
         botonGestionar.grid(row=0, column=0)
 
         botonAspecto = ctk.CTkButton(self, text="Aspecto 🌙", command=cambiarTema)
@@ -99,9 +112,12 @@ def guardarTarea(titulo, prioridad, middleInstance):
         dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
         print(
             f"El titulo de la tarea es {tituloTarea}, su prioridad es {prioridad} y su fecha de creación es {dt_string}")
+        tareaCheckBox = ctk.CTkCheckBox(middleInstance, text="En proceso", onvalue=dt_string, offvalue="")
         tareas[tituloTarea] = {
             "Prioridad": prioridad,
-            "Fecha": dt_string
+            "Fecha": dt_string,
+            "Estado": "en proceso",
+            "checkbox": tareaCheckBox
         }
         middleInstance.build_tree(tituloTarea, prioridad, dt_string)
 
