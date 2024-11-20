@@ -1,9 +1,7 @@
 from datetime import datetime
 import tkinter as tk
-from tkinter import ttk, Toplevel
-
+from tkinter import ttk
 import customtkinter as ctk  # <- import the CustomTkinter module
-from customtkinter import CTkFrame
 
 
 class classRoot:
@@ -12,58 +10,66 @@ class classRoot:
         self.root.title("Gestor de tareas")
         centrarPantalla(self.root)
 
-        self.root.grid_rowconfigure([0, 1, 2], weight=1)
-        self.root.grid_columnconfigure([0, 1, 2], weight=1)
+        self.middleInstance = frameMiddle(self.root)
+        self.topInstance = frameTop(self.root, self.middleInstance)
+        self.topInstance.pack(side="top", fill="x")
 
-        self.instanceBottom = frameBottom(self.root)
-        self.instanceBottom.grid(row=2, column=0, columnspan=3, sticky="nsew")
+        self.middleInstance.pack(expand=True, fill="both")
 
-        self.instanceMiddle = frameMiddle(self.root)
-        self.instanceMiddle.grid(row=1, column=0, columnspan=3, sticky="nsew")
-
-        self.instanceTop = frameTop(self.root)
-        self.instanceTop.grid(row=0, column=0, columnspan=3, sticky="nsew")
+        self.bottomInstance = frameBottom(self.root)
+        self.bottomInstance.pack(side="bottom", fill="x")
 
 
 class frameTop(ctk.CTkFrame):  # Usar PEP8 para nombres de clases
-    def __init__(self, root):
+    def __init__(self, root, middleInstance):
         super().__init__(root)
-        self.configure(fg_color="grey")
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_columnconfigure(0, weight=1)
 
-        # Etiqueta del frame del medio
-        etiqueta = ctk.CTkLabel(self, text="ETIQUETA ARRIBA")
-        etiqueta.pack()
+        etiqueta = ctk.CTkLabel(self, text="Agregar tarea")
+        etiqueta.pack(side="left", padx=(100, 50))
+
+        entryTitulo = ctk.CTkEntry(self, width=100, placeholder_text="Nombre de la tarea")
+        entryTitulo.pack(side="left", expand=True, fill="x")
+
+        combobox = ctk.CTkComboBox(self, values=["Alta", "Media", "Baja"])
+        combobox.pack(side="left")
+        botonAgregar = ctk.CTkButton(self, text="Agregar",
+                                     command=lambda: guardarTarea(entryTitulo, combobox.get(), middleInstance))
+        botonAgregar.pack(side="left")
 
 
 class frameMiddle(ctk.CTkFrame):
     def __init__(self, root):
         super().__init__(root)
-        self.configure(fg_color="darkgreen")
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_columnconfigure(0, weight=1)
 
         # Etiqueta del frame del medio
-        etiqueta = ctk.CTkLabel(self, text="ETIQUETA MEDIO")
+        etiqueta = ctk.CTkLabel(self, text="Tareas")
         etiqueta.pack()
+
+        self.tabla = ttk.Treeview(self, columns=("Coll", "Col2", "Col3", "Col4"), show="headings")
+
+        self.tabla.heading("Coll", text="Titulo")
+        self.tabla.heading("Col2", text="Prioridad")
+        self.tabla.heading("Col3", text="Fecha")
+        self.tabla.heading("Col4", text="Estado")
+
+        self.tabla.pack()
+
+    def build_tree(self, tituloTarea, prioridad, dt_string):
+        self.tabla.insert("", "end", values=(tituloTarea, prioridad, dt_string, "en proceso"))
+        print(f"MIDDLE FRAME: {tituloTarea} {prioridad} {dt_string}")
 
 
 class frameBottom(ctk.CTkFrame):
     def __init__(self, root):
         super().__init__(root)
-        self.configure(fg_color="darkblue")
         self.grid_rowconfigure(0, weight=1)
-        self.grid_columnconfigure([0, 1, 2], weight=1)
-
-        botonAdd = ctk.CTkButton(self, text="Agregar tarea", command= lambda : agregarTarea(frameBottom))
-        botonAdd.grid(row=0, column=0)
+        self.grid_columnconfigure([0, 1], weight=1)
 
         botonGestionar = ctk.CTkButton(self, text="Gestionar tarea", command=gestionarTarea)
-        botonGestionar.grid(row=0, column=1)
+        botonGestionar.grid(row=0, column=0)
 
-        botonAspecto = ctk.CTkButton(self, text="Aspecto 🌙", command=gestionarTarea)
-        botonAspecto.grid(row=0, column=2)
+        botonAspecto = ctk.CTkButton(self, text="Aspecto 🌙", command=cambiarTema)
+        botonAspecto.grid(row=0, column=1)
 
 
 def centrarPantalla(root):
@@ -80,71 +86,39 @@ def centrarPantalla(root):
     root.geometry(f"{ancho_ventana}x{alto_ventana}+{pos_x}+{pos_y}")
 
 
-def agregarTarea(frameBottom):
-    secundaria = ctk.CTk()
-    centrarPantalla(secundaria)
-    secundaria.title("Agregar tarea")
-
-    labelTitulo = ctk.CTkLabel(secundaria, text="Título de la tarea:")
-    labelTitulo.pack()
-
-    entryTitulo = ctk.CTkEntry(secundaria, width=100)
-    entryTitulo.pack(padx=10, pady=5)
-
-    labelPrioridad = ctk.CTkLabel(secundaria, text="Nivel de la prioridad:")
-    labelPrioridad.pack(pady=5)
-
-    combobox = ctk.CTkComboBox(secundaria, values=["Alta", "Media", "Baja"])
-    combobox.pack(pady=5)
-
-    botonAgregar = ctk.CTkButton(secundaria, text="Agregar",
-                                 command=lambda: guardarTarea(entryTitulo, combobox.get()))
-    botonAgregar.pack(pady=10)
-
-    botonCerrar = ctk.CTkButton(secundaria, text="Cerrar", fg_color="red", command=secundaria.destroy)
-    botonCerrar.pack(pady=15)
-
-    secundaria.mainloop()
-
-
 tareas = {}
 
 
-def guardarTarea(titulo, prioridad):
+def guardarTarea(titulo, prioridad, middleInstance):
     tituloTarea = titulo.get()
-    titulo.delete(0, 'end')
-    now = datetime.now()
-    dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
-    print(f"El titulo de la tarea es {tituloTarea}, su prioridad es {prioridad} y su fecha de creación es {dt_string}")
-
-    tareas[tituloTarea] = {
-        "Prioridad": prioridad,
-        "Fecha": now
-    }
-
-
-def verTabla():
-    root = tk.Tk()
-    root.title("Tabla")
-    centrarPantalla(root)
-    root.grid_rowconfigure(0, weight=1)
-    root.grid_columnconfigure(0, weight=1)
-    root.grid_rowconfigure(1, weight=1)
-    root.grid_columnconfigure(1, weight=1)
-    tabla = ttk.Treeview(root, columns=("Coll", "Col2", "Col3"), show="headings")
-    tabla.heading("Coll", text="Titulo")
-    tabla.heading("Col2", text="Prioridad")
-    tabla.heading("Col3", text="Fecha")
-
-    for titulo, information in tareas.items():
-        prioridad = tareas[titulo]["Prioridad"]
-        fecha = tareas[titulo]["Fecha"]
-        tabla.insert("", "end", values=(titulo, prioridad, fecha))
-    tabla.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
-
-    for titulo in tareas.items():
-        print(titulo)
+    if tituloTarea == "":
+        tk.messagebox.showerror(title="Error", message="El nombre de la tarea esta vacío")
+    else:
+        titulo.delete(0, 'end')
+        now = datetime.now()
+        dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+        print(
+            f"El titulo de la tarea es {tituloTarea}, su prioridad es {prioridad} y su fecha de creación es {dt_string}")
+        tareas[tituloTarea] = {
+            "Prioridad": prioridad,
+            "Fecha": dt_string
+        }
+        middleInstance.build_tree(tituloTarea, prioridad, dt_string)
 
 
 def gestionarTarea():
-    verTabla()
+    pass
+
+
+mode = "dark"
+
+
+def cambiarTema():
+    global mode
+    if mode == "dark":
+        ctk.set_appearance_mode("light")  # Si se modifica el color del frame deja de funcionar ⚠ NO TOCAR ⚠
+        mode = "light"
+
+    else:
+        ctk.set_appearance_mode("dark")
+        mode = "dark"
